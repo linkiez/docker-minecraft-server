@@ -277,9 +277,20 @@ function handleModrinthProjects() {
       loader="${TYPE,,}"
     fi
 
-    # If using NeoForge and Connector mod is present, download Fabric mods instead
+    # Download mods for the primary loader
+    mc-image-helper modrinth \
+      --output-directory=/data \
+      --world-directory="${LEVEL:-world}" \
+      --projects="${MODRINTH_PROJECTS}" \
+      --game-version="${VERSION}" \
+      --loader="$loader" \
+      --download-dependencies="$MODRINTH_DOWNLOAD_DEPENDENCIES" \
+      --allowed-version-type="$MODRINTH_PROJECTS_DEFAULT_VERSION_TYPE" || true
+
+    # If using NeoForge and Connector mod is present, also download Fabric mods
+    # This allows Fabric-only mods to be available via Connector compatibility layer
     if [[ "$loader" == "neoforge" ]] && echo "$MODRINTH_PROJECTS" | grep -qiE '(^|[,[:space:]:])connector([,[:space:]:]|$)'; then
-      log "Connector mod detected in NeoForge setup. Downloading mods with Fabric loader compatibility..."
+      log "Connector mod detected in NeoForge setup. Also downloading Fabric versions of mods..."
       mc-image-helper modrinth \
         --output-directory=/data \
         --world-directory="${LEVEL:-world}" \
@@ -287,16 +298,7 @@ function handleModrinthProjects() {
         --game-version="${VERSION}" \
         --loader="fabric" \
         --download-dependencies="$MODRINTH_DOWNLOAD_DEPENDENCIES" \
-        --allowed-version-type="$MODRINTH_PROJECTS_DEFAULT_VERSION_TYPE"
-    else
-      mc-image-helper modrinth \
-        --output-directory=/data \
-        --world-directory="${LEVEL:-world}" \
-        --projects="${MODRINTH_PROJECTS}" \
-        --game-version="${VERSION}" \
-        --loader="$loader" \
-        --download-dependencies="$MODRINTH_DOWNLOAD_DEPENDENCIES" \
-        --allowed-version-type="$MODRINTH_PROJECTS_DEFAULT_VERSION_TYPE"
+        --allowed-version-type="$MODRINTH_PROJECTS_DEFAULT_VERSION_TYPE" || true
     fi
   fi
 }
